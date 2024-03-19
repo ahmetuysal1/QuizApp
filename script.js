@@ -9,7 +9,7 @@ let questions = [
     },
 
     {
-        'question': 'Was ist Shareware...',
+        'question': 'Was ist Shareware...?',
         'answer_1': '...eine Software, die sich mehrere Nutzer teilen können.',
         'answer_2': '...die Auswahl preiswerter Aktienindex-Fonds durch ein Computersystem.',
         'answer_3': '...eine Cloud, die die Verbreitung von besonders vielen Daten zulässt.',
@@ -27,7 +27,7 @@ let questions = [
     },
 
     {
-        'question': 'Was ist ein Bit',
+        'question': 'Was ist ein Bit?',
         'answer_1': 'Eine Folge aus 4 Zahlen',
         'answer_2': 'Eine Folge aus 8 Zahlen',
         'answer_3': 'Eine Binärziffer',
@@ -47,6 +47,8 @@ let questions = [
 
 let rightQuestions = 0;
 let currentQuestion = 0;
+let AUDIO_SUCCESS = new Audio('audio/success.mp3');
+let AUDIO_FAIL = new Audio('audio/fail.mp3');
 
 function init(){
     document.getElementById('all_questions').innerHTML = questions.length;
@@ -56,32 +58,43 @@ function init(){
 
 function showQuestion(){
 
-    if (currentQuestion >= questions.length) {
-        // TODO: Show End Screen
+    if (gameIsOver()) {
+        showEndScreen();
+    } else {
+        updateProgressBar();
+        updateNextQuestion();
+    }
+}
+
+function gameIsOver(){
+    return currentQuestion >= questions.length;
+}
+
+function showEndScreen(){
         document.getElementById('endScreen').style = '';
         document.getElementById('questionBody').style = 'display: none';
-
+    
         document.getElementById('amount-of-questions').innerHTML = questions.length;
         document.getElementById('amount-of-right-questions').innerHTML = rightQuestions;
         document.getElementById('header-image').src = 'img/trophy1.png';
-    } else { // Show question
+}
 
-        let percent = (currentQuestion + 1) / questions.length;
-        percent = Math.round(percent * 100);
+function updateProgressBar(){
+    let percent = (currentQuestion + 1) / questions.length;
+    percent = Math.round(percent * 100);
+    document.getElementById('progressBar').innerHTML = `${percent} %`;
+    document.getElementById('progressBar').style = `width: ${percent} %;`;
+}
 
-        document.getElementById('progress-bar').innerHTML = `${percent} %`;
-        document.getElementById('progress-bar').style = `width: ${percent} %;`;
+function updateNextQuestion(){
+    let question = questions[currentQuestion];
 
-
-        let question = questions[currentQuestion];
-
-        document.getElementById('question-number').innerHTML = currentQuestion + 1;
-        document.getElementById('questiontext').innerHTML = question['question'];
-        document.getElementById('answer_1').innerHTML = question['answer_1'];
-        document.getElementById('answer_2').innerHTML = question['answer_2'];
-        document.getElementById('answer_3').innerHTML = question['answer_3'];
-        document.getElementById('answer_4').innerHTML = question['answer_4'];
-    }
+    document.getElementById('question-number').innerHTML = currentQuestion + 1;
+    document.getElementById('questiontext').innerHTML = question['question'];
+    document.getElementById('answer_1').innerHTML = question['answer_1'];
+    document.getElementById('answer_2').innerHTML = question['answer_2'];
+    document.getElementById('answer_3').innerHTML = question['answer_3'];
+    document.getElementById('answer_4').innerHTML = question['answer_4'];
 }
 
 function answer(selection){
@@ -89,14 +102,20 @@ function answer(selection){
     let selectedQuestionNumber = selection.slice(-1);
     let idOfRightAnswer = `answer_${question['right_answer']}`;
 
-    if (selectedQuestionNumber == question['right_answer']) {
+    if (rightAnswerSelected(selectedQuestionNumber)) {
         document.getElementById(selection).parentNode.classList.add('bg-success');  
-        rightQuestions++;   
+        AUDIO_SUCCESS.play();
+        rightQuestions++; 
     } else {
         document.getElementById(selection).parentNode.classList.add('bg-danger');
         document.getElementById(idOfRightAnswer).parentNode.classList.add('bg-success'); 
+        AUDIO_FAIL.play();
     }
     document.getElementById('next-button').disabled = false;
+}
+
+function rightAnswerSelected(selectedQuestionNumber){
+    return selectedQuestionNumber == questions['right_answer'];
 }
 
 function nextQuestion(){
@@ -115,4 +134,14 @@ function resetAnswerButtons(){
     document.getElementById('answer_3').parentNode.classList.remove('bg-success');
     document.getElementById('answer_4').parentNode.classList.remove('bg-danger');
     document.getElementById('answer_4').parentNode.classList.remove('bg-success');
+}
+
+function restartGame(){
+    document.getElementById('header-image').src = 'img/quiz.jpg';
+    document.getElementById('questionBody').style = ''; // questionBody wieder anzeigen
+    document.getElementById('endScreen').style = 'display: none'; // EndScreen ausblenden
+
+    rightQuestions = 0;
+    currentQuestion = 0;
+    init();
 }
